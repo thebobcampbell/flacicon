@@ -14,7 +14,8 @@ usage(){
   echo 1>&2 "usage: flacicon [-e|-f <imagefile>] <filelist>"
   echo "        -e                      [e]xtract the artwork from metadata"
   echo "        -f <imagefile>          use given image [f]ile for icon"
-  echo "        <filelist>              list of input files; takes wildcards"  echo "                                or a directory with flac files"
+  echo "        <filelist>              list of input files; takes wildcards"  
+  echo "                                or a directory with flac files"
   exit 1
 }
 
