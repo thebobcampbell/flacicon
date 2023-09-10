@@ -1,7 +1,7 @@
 # flacicon
 
 Apple's hate-hate relationship with Free Lossless Audio Compression (FLAC) is so petty, they don't plumb the meta info 
-of flac files for album art to make icons for .falc files.  Fine.  Here's a script that will:
+of flac files for album art to make icons for .flac files.  Fine.  Here's a script that will:
 1) accept a directory or a list of files (ala "*.flac")
 2) extract the artwork from each flac file or accept an image filename to create an icon.
 
