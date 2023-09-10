@@ -1,0 +1,77 @@
+#!/bin/bash
+# Sets an icon on file or directory
+# Usage flacicon [-e|-f <imagefile>] /path/to/flacfile.flac
+
+set -e
+shopt -s extglob
+
+icon=/tmp/flacicon_tmp
+rsrc=/tmp/icon.rsrc
+currentdir=$(pwd)
+imagefile=/tmp/extractedimage
+
+usage(){
+  echo 1>&2 "usage: flacicon [-e|-f <imagefile>] <filelist>"
+  echo "        -e                      [e]xtract the artwork from metadata"
+  echo "        -f <imagefile>          use given image [f]ile for icon"
+  echo "        <filelist>              list of input files; takes wildcards"  echo "                                or a directory with flac files"
+  exit 1
+}
+
+NARG=$#
+[ $NARG -le 1 ] && usage
+
+while [ $NARG -gt 0 ]
+do
+  case "$1" in
+    -h)  usage;;
+#  select a filename for output from mencoder.  ".avi" will be added to the end.
+    -e) extractswitch=1;;
+    -f) imagefile="$2"; shift;;
+     *) filelist=( "$@" ); break;;
+  esac
+  shift
+done
+
+# check filelist for a) multiple entries b) directories
+if [[ ${#filelist[@]} -le 1 ]] 
+  then
+# there's only one element - test it for a directory
+    if [ -d "${filelist[0]}" ]; then
+      workdir="${filelist[0]}"
+      # since it is a directory, build the filelist by finding any flac
+      # files in the directory (and below)
+      filelist=()
+      while IFS= read -r -d $'\0'; do
+        filelist+=("$REPLY")
+      done < <(find ${workdir} -name "*.flac" -print0)
+    fi
+fi
+
+for flacfile in "${filelist[@]}"
+do
+  if [[ $extractswitch == 1 ]]; then
+  # get artwork from metadata
+    metaflac --export-picture-to="$imagefile" "$flacfile"
+  fi
+  cp "$imagefile" "$icon"
+  if [ ! -s "$icon" ]; then
+    echo "No image data in metaflac info!"
+    exit 1
+  fi
+
+  # Add icon to image file, meaning use itself as the icon
+  sips -i "$icon" > /dev/null 2>&1
+
+  # Take that icon and put it into a rsrc file
+  DeRez -only icns "$icon" > "$rsrc"
+
+  # Apply the rsrc file to
+  SetFile -a C "$flacfile"
+
+  # Destination is a file
+  Rez -append $rsrc -o "$flacfile"
+
+  # clean up
+  rm "$rsrc" "$icon" 
+done
